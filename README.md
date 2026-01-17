@@ -1,2 +1,2 @@
 # Lattice
-A modern linear algebra library written in Rust.
+A multi-modal machine learning library written in Python.
