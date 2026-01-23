@@ -4,7 +4,7 @@ from .decision_stump import DecisionStumpInfoGain
 
 
 class RandomStumpInfoGain(DecisionStumpInfoGain):
-    def fit(self, X, y):
+    def fit(self, X, y, split_features=None):
         # Randomly select k features.
         # This can be done by randomly permuting
         # the feature indices and taking the first k
