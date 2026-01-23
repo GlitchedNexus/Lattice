@@ -2,17 +2,15 @@ import numpy as np
 from kmeans import KMeans
 
 
-# If you want, you could write this function to compute pairwise L1 distances
 def l1_distances(X1, X2):
     # Implementation is based on the euclidean_dist_squared function
     # in utils.py.
-
     return np.sum(np.abs(X1[:, None, :] - X2[None, :, :]), axis=2)
 
 
 class KMedians(KMeans):
     # We can reuse most of the code structure from KMeans, rather than copy-pasting,
-    # by just overriding these few methods. Object-orientation!
+    # by just overriding these few methods.
 
     def get_assignments(self, X):
         # This implementation is based on the implementation
