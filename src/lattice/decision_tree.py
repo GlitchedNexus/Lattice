@@ -3,10 +3,6 @@ from decision_stump import DecisionStumpErrorRate
 
 
 class DecisionTree:
-    stump_model = None
-    submodel_yes = None
-    submodel_no = None
-
     def __init__(self, max_depth, stump_class=DecisionStumpErrorRate):
         self.max_depth = max_depth
         self.stump_class = stump_class
