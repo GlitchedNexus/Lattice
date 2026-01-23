@@ -1,5 +1,6 @@
 import numpy as np
-from decision_stump import DecisionStumpErrorRate
+
+from .decision_stump import DecisionStumpErrorRate
 
 
 class DecisionTree:

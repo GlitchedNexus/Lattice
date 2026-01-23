@@ -1,6 +1,7 @@
 import numpy as np
-from decision_tree import DecisionTree
-from ramdom_stump import RandomStumpInfoGain
+
+from .decision_tree import DecisionTree
+from .ramdom_stump import RandomStumpInfoGain
 
 
 class RandomTree(DecisionTree):

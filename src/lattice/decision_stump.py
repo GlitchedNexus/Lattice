@@ -1,5 +1,6 @@
 import numpy as np
-import utils
+
+from lattice import utils
 
 
 class DecisionStumpErrorRate:

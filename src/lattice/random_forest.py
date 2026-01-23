@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.lattice.random_tree import RandomTree
+from .random_tree import RandomTree
 
 
 class RandomForest:

@@ -1,5 +1,6 @@
 import numpy as np
-from utils import euclidean_dist_squared, plot2Dclusters
+
+from lattice import utils
 
 
 class KMeans:
@@ -9,7 +10,7 @@ class KMeans:
             self.fit(X, k, plot=plot, log=log)
 
     def get_assignments(self, X):
-        D2 = euclidean_dist_squared(X, self.w)
+        D2 = utils.euclidean_dist_squared(X, self.w)
         return np.argmin(D2, axis=1)
 
     def update_means(self, X, y):
@@ -37,7 +38,7 @@ class KMeans:
             if plot and self.d == 2:
                 from matplotlib import pyplot as plt
 
-                plot2Dclusters(X, y, w)
+                utils.plot2Dclusters(X, y, w)
                 plt.pause(1)
                 plt.clf()
 
@@ -45,7 +46,7 @@ class KMeans:
                 print(f"Changes: {changes:>7,}")
 
         if plot and self.d == 2:
-            plot2Dclusters(
+            utils.plot2Dclusters(
                 X, y, w, filename=f"{plot_fn or type(self).__name__.lower()}.png"
             )
 

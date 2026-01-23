@@ -1,5 +1,6 @@
 import numpy as np
-from decision_stump import DecisionStumpInfoGain
+
+from .decision_stump import DecisionStumpInfoGain
 
 
 class RandomStumpInfoGain(DecisionStumpInfoGain):

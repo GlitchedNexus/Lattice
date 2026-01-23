@@ -1,5 +1,6 @@
 import numpy as np
-from kmeans import KMeans
+
+from .kmeans import KMeans
 
 
 def l1_distances(X1, X2):
