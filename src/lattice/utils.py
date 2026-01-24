@@ -1,3 +1,4 @@
+import statistics
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -14,6 +15,130 @@ def load_dataset(filename, *keys):
         return [data[k] for k in keys]
     else:
         return data
+
+
+def ensure_1d(x):
+    if x.ndim == 1:
+        return x
+    elif x.ndim == 2:
+        return x.squeeze(axis=1)
+    elif x.ndim == 0:
+        return x[np.newaxis]
+    else:
+        raise ValueError(f"invalid shape {x.shape} for ensure_1d")
+
+
+def mode(y):
+    """Computes the element with the maximum count
+
+    Parameters
+    ----------
+    y : an input numpy array
+
+    Returns
+    -------
+    y_mode :
+        Returns the element with the maximum count
+    """
+    if len(y) == 0:
+        return -1
+    else:
+        return statistics.mode(y.flatten())
+
+
+def euclidean_dist_squared(X, X_test):
+    """Computes the Euclidean distance between rows of 'X' and rows of 'X_test'
+
+    Parameters
+    ----------
+    X : an N by D numpy array
+    X_test: an T by D numpy array
+
+    Returns: an array of size N by T containing the pairwise squared Euclidean distances.
+
+    Python/Numpy (and other numerical languages like Matlab and R)
+    can be slow at executing operations in `for' loops, but allows extremely-fast
+    hardware-dependent vector and matrix operations. By taking advantage of SIMD registers and
+    multiple cores (and faster matrix-multiplication algorithms), vector and matrix operations in
+    Numpy will often be several times faster than if you implemented them yourself in a fast
+    language like C. The following code will form a matrix containing the squared Euclidean
+    distances between all training and test points. If the output is stored in D, then
+    element D[i,j] gives the squared Euclidean distance between training point
+    i and testing point j. It exploits the identity (a-b)^2 = a^2 + b^2 - 2ab.
+    The right-hand-side of the above is more amenable to vector/matrix operations.
+    """
+
+    return (
+        np.sum(X**2, axis=1)[:, None]
+        + np.sum(X_test**2, axis=1)[None]
+        - 2 * np.dot(X, X_test.T)
+    )
+
+    # without broadcasting:
+    # n,d = X.shape
+    # t,d = X_test.shape
+    # D = X**2@np.ones((d,t)) + np.ones((n,d))@(X_test.T)**2 - 2*X@X_test.T
+
+
+def standardize_cols(X, mu=None, sigma=None):
+    "Standardize each column to have mean 0 and variance 1"
+    n_rows, n_cols = X.shape
+
+    if mu is None:
+        mu = np.mean(X, axis=0)
+
+    if sigma is None:
+        sigma = np.std(X, axis=0)
+        sigma[sigma < 1e-8] = 1.0
+
+    return (X - mu) / sigma, mu, sigma
+
+
+def check_gradient(model, X, y):
+    # This checks that the gradient implementation is correct
+    w = np.random.rand(*model.w.shape)
+    f, g = model.fun_obj(w, X, y)
+
+    # Check the gradient
+    estimated_gradient = approx_fprime(
+        w, lambda w: model.fun_obj(w, X, y)[0], epsilon=1e-6
+    )
+
+    implemented_gradient = model.fun_obj(w, X, y)[1]
+
+    if np.max(np.abs(estimated_gradient - implemented_gradient) > 1e-4):
+        raise Exception(
+            "User and numerical derivatives differ:\n%s\n%s"
+            % (estimated_gradient[:5], implemented_gradient[:5])
+        )
+    else:
+        print("User and numerical derivatives agree.")
+
+
+def classification_error(y, yhat):
+    return np.mean(y != yhat)
+
+
+def load_trainval(filename):
+    d = load_dataset(filename)
+    return d["X_train"], d["y_train"], d["X_valid"], d["y_valid"]
+
+
+def load_and_split(filename, **kwargs):
+    data = load_dataset(filename)
+    X = data["X"]
+    y = data["y"]
+    kwargs.setdefault("random_state", 0)
+    X_train, X_valid, y_train, y_valid = train_test_split(X, y, **kwargs)
+
+    return X_train, y_train, X_valid, y_valid
+
+
+def savefig(fname, fig=None, verbose=True):
+    path = Path("..", "figs", fname)
+    (plt if fig is None else fig).savefig(path, bbox_inches="tight", pad_inches=0)
+    if verbose:
+        print(f"Figure saved as '{path}'")
 
 
 ################################################################################
@@ -201,40 +326,6 @@ def test_and_plot(
     return ax
 
 
-def euclidean_dist_squared(X, X_test):
-    """Computes the Euclidean distance between rows of 'X' and rows of 'X_test'
-
-    Parameters
-    ----------
-    X : an N by D numpy array
-    X_test: an T by D numpy array
-
-    Returns: an array of size N by T containing the pairwise squared Euclidean distances.
-
-    Python/Numpy (and other numerical languages like Matlab and R)
-    can be slow at executing operations in `for' loops, but allows extremely-fast
-    hardware-dependent vector and matrix operations. By taking advantage of SIMD registers and
-    multiple cores (and faster matrix-multiplication algorithms), vector and matrix operations in
-    Numpy will often be several times faster than if you implemented them yourself in a fast
-    language like C. The following code will form a matrix containing the squared Euclidean
-    distances between all training and test points. If the output is stored in D, then
-    element D[i,j] gives the squared Euclidean distance between training point
-    i and testing point j. It exploits the identity (a-b)^2 = a^2 + b^2 - 2ab.
-    The right-hand-side of the above is more amenable to vector/matrix operations.
-    """
-
-    return (
-        np.sum(X**2, axis=1)[:, None]
-        + np.sum(X_test**2, axis=1)[None]
-        - 2 * np.dot(X, X_test.T)
-    )
-
-    # without broadcasting:
-    # n,d = X.shape
-    # t,d = X_test.shape
-    # D = X**2@np.ones((d,t)) + np.ones((n,d))@(X_test.T)**2 - 2*X@X_test.T
-
-
 def plot2Dclusters(X, y, w=None, filename=None):
     k = np.unique(y).size
     symbols = ["s", "o", "v", "^", "x", "+", "*", "d", "<", ">", "p"]
@@ -247,21 +338,3 @@ def plot2Dclusters(X, y, w=None, filename=None):
     if filename is not None:
         plt.savefig(f"../figs/{filename}", bbox_inches="tight", pad_inches=0.1)
         print(f"Plot saved as {filename}")
-
-
-def mode(y):
-    """Computes the element with the maximum count
-
-    Parameters
-    ----------
-    y : an input numpy array
-
-    Returns
-    -------
-    y_mode :
-        Returns the element with the maximum count
-    """
-    if len(y) == 0:
-        return -1
-    else:
-        return statistics.mode(y.flatten())
