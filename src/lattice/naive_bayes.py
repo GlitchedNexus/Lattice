@@ -24,8 +24,17 @@ class NaiveBayes:
         # Compute the conditional probabilities i.e.
         # p(x_ij=1 | y_i==c) as p_xy[j, c]
         # p(x_ij=0 | y_i==c) as 1 - p_xy[j, c]
-        p_xy = 0.5 * np.ones((d, k))
-        # TODO: replace the above line with the proper code
+        p_xy = np.zeros((d, k), dtype=float)
+
+        for c in range(k):
+            idx = y == c
+
+            n_c = idx.sum()
+
+            if n_c == 0:
+                p_xy[:, c] = 0.0
+            else:
+                p_xy[:, c] = X[idx].mean(axis=0)
 
         self.p_y = p_y
         self.p_xy = p_xy
@@ -56,7 +65,30 @@ class NaiveBayesLaplace(NaiveBayes):
         self.beta = beta
 
     def fit(self, X, y):
-        raise NotImplementedError()
+        # I will refer to the previous fit method as reference
+        n, d = X.shape
+
+        # Compute the number of class labels
+        k = self.num_classes
+
+        # Compute the probability of each class i.e p(y==c), aka "baseline -ness"
+        counts = np.bincount(y, minlength=k).astype(float)
+        p_y = counts / n
+
+        # Compute the conditional probabilities
+
+        p_xy = np.zeros((d, k), dtype=float)
+
+        for c in range(k):
+            idx = y == c
+            n_c = idx.sum()
+
+            if n_c == 0:
+                p_xy[:, c] = 0.5
+
+            else:
+                sum_ones = X[idx].sum(axis=0)
+                p_xy[:, c] = (sum_ones + self.beta) / (n_c + 2 * self.beta)
 
         self.p_y = p_y
         self.p_xy = p_xy
